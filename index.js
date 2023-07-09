@@ -1,38 +1,49 @@
-const con = require('./connection');
 const express = require('express');
-const app = express();
+const bodyParser = require('body-parser');
+const con = require('./connection');
 
+const app = express();
+// app.use(bodyParser.urlencoded({ extended: false }));
+// app.use(bodyParser.json());
 app.use(express.json());
 
-app.get('/', (req,res)=>{
+app.get('/',  (req,res)=>{
     con.query("select * from student",(err,result)=>{
         if(err){
             throw err;
         }else{
-                result.forEach((row) => {
-                  // Access each row's data
-                 if(row.id==1)
-                  // Perform any desired operations with the data
-                  console.log(`ID: ${row.id}, Name: ${row.name}`);
-                });
+            const rows = [];
+            result.forEach((row) => {
+            //   if (row.id == 1) {
+                // Perform any desired operations with the data
+                console.log(`ID: ${row.id}, Name: ${row.name}`);
+                rows.push(row);
+            //   }
+            });
+            res.send(rows);
         }
     });
 });
 
-app.post('/',(req,res)=>{
-   const data = {id:7, name:'Draco'};
-   con.query('INSERT INTO student (id, name) VALUES (?, ?)', [data.id, data.name], (err, result) => {
-    if(err){
+app.post('/', async (req, res) => {
+    const { body } = req;
+    console.log(body);
+    console.log(req.body.id);
+    console.log(req.body.name);
+    con.query('INSERT INTO student (id, name) VALUES (?, ?);', [req.body.id, req.body.name], (err, result) => {
+      if (err) {
         throw err;
-    }else{
+      } else {
         res.send(result);
-        console.log(data);
-    }
-});
-});
+        console.log(req.body);
+      }
+    });
+  });
+  
 
-app.put('/:id', (req,res)=>{
-    const data = [req.body.name,req.body.email,req.body.phone,req.params.id];
+app.put('/:id',async  (req,res)=>{
+    const data = [req.body.name, req.params.id];
+  console.log(data);
     con.query("UPDATE student SET name = ? where id = ?",data,(err,result)=>{
         if(err){
             throw err;
